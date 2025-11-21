@@ -49,10 +49,10 @@ def add_path_arguments(
         "--raw-data-root",
         type=Path,
         required=require_raw_data_root,
-        default=Path("data/raw"),
+        default=Path("data/preprocessed"),
         help=(
             "Base directory containing NData_<year> folders with article pickles. "
-            "Optional when a command does not read raw data."
+            "Optional when a command does not read raw data. Default: data/preprocessed."
         ),
     )
     parser.add_argument(
