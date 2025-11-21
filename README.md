@@ -46,3 +46,27 @@ Preprint of paper is available here: https://osf.io/preprints/socarxiv/7nm9x/. D
 
 **PlottingBootstrapped_CleanedUp.py**
 * Visualize stigma scores of diseases, by disease group, across time. (Requires stigmaindex_aggregated_temp_92CI.csv).
+
+## Using your own corpus
+
+The training scripts expect pickled article lists organized as `NData_<year>/all<year>bodytexts_regexeddisamb_listofarticles`
+under a `--raw-data-root` directory. If your data are in a CSV (for example, with
+`title`, `Text`, and `Date` columns), you can generate the expected pickles with
+`prepare_corpus_from_csv.py`:
+
+```bash
+python prepare_corpus_from_csv.py \
+  --csv-path /path/to/your/news.csv \
+  --text-column Text \
+  --title-column title \
+  --date-column Date \
+  --default-year 2010 \  # optional fallback if dates are missing
+  --id-column GOID \     # optional: drop duplicates with this column
+  --min-body-chars 50 \  # optional: skip very short rows
+  --encoding utf-8 \     # optional: override CSV encoding
+  --output-root /path/to/raw_data_root
+```
+
+The script will create one pickle per year in `output-root`, matching the
+layout expected by `TrainingPhraser_CleanedUp.py` and
+`TrainingW2V_Booted_CleanedUp.py`.
