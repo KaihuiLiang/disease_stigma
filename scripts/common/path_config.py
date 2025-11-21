@@ -3,6 +3,9 @@ from pathlib import Path
 import argparse
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
 @dataclass
 class PathConfig:
     analyses_dir: Path
@@ -82,19 +85,19 @@ def add_path_arguments(
     parser.add_argument(
         "--lexicon-path",
         type=Path,
-        default=Path("Stigma_WordLists.csv"),
+        default=REPO_ROOT / "data" / "Stigma_WordLists.csv",
         help="Path to the stigma lexicon CSV.",
     )
     parser.add_argument(
         "--disease-list-path",
         type=Path,
-        default=Path("Disease_list_5.12.20_uncorrupted.csv"),
+        default=REPO_ROOT / "data" / "Disease_list_5.12.20_uncorrupted.csv",
         help="Path to the disease list CSV.",
     )
     parser.add_argument(
         "--personality-traits-path",
         type=Path,
-        default=Path("updated_personality_trait_list.csv"),
+        default=REPO_ROOT / "data" / "updated_personality_trait_list.csv",
         help="Path to the personality traits CSV.",
     )
 

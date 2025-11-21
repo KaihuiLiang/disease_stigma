@@ -9,13 +9,16 @@ from gensim.models import Word2Vec
 from gensim.test.utils import datapath
 
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Validate Word2Vec models.")
     parser.add_argument("--model-path", type=Path, required=True, help="Path to the Word2Vec model to evaluate.")
     parser.add_argument(
         "--analogy-file",
         type=Path,
-        default=Path("questions_words_pasted.txt"),
+        default=REPO_ROOT / "data" / "questions_words_pasted.txt",
         help="Path to the Google analogy question file.",
     )
     return parser.parse_args()
