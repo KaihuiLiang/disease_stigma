@@ -2,7 +2,7 @@
 
 This repository accompanies the paper ["The Stigma of Diseases: Unequal Burden, Uneven Decline"](https://osf.io/preprints/socarxiv/7nm9x/) by Rachel Kahn Best and Alina Arseniev-Koehler (forthcoming in *American Sociological Review*).
 
-Using word-embedding methods, the project measures stigma for 106 health conditions across 4.7 million news articles from 1980–2018. Code in this repository prepares corpora, trains models, validates embeddings, and aggregates stigma indices.
+Using word-embedding methods, the project measures stigma for 106 health conditions across 4.7 million news articles from 1980–2018. Code in this repository prepares corpora, trains models, validates embeddings, and aggregates stigma indices. The codebase has been reorganized into functional directories (data preparation, training, validation, analysis) with shared paths centralized in `config/`.
 
 ## Directory structure
 
