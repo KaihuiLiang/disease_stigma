@@ -10,7 +10,7 @@ Preprint of paper is available here: https://osf.io/preprints/socarxiv/7nm9x/. D
 
 ## Repository layout
 
-The repository is organized by function under the `scripts/` directory; shared inputs live in `data/`. Run each script as a module from the repository root (for example, `python -m scripts.scoring.WriteStigmaScores_CleanedUp --help`) so that relative imports work consistently after merges.
+The repository is organized by function under the `scripts/` directory; shared inputs live in `data/`. Run each script as a module from the repository root (for example, `python -m scripts.scoring.WriteStigmaScores_CleanedUp --help`) so that relative imports work consistently after merges. If you reorganize paths or filenames with the new CLI options, keep the per-year folder pattern stable so downstream scripts can still locate the pickles.
 
 * `scripts/corpus/prepare_corpus_from_csv.py`: Convert CSV corpora into yearly pickled article lists.
 * `scripts/training/TrainingPhraser_CleanedUp.py`: Train phrase models on 3-year windows.
@@ -89,15 +89,16 @@ python -m scripts.corpus.prepare_corpus_from_csv \
   --min-body-chars 50 \  # optional: skip very short rows
   --encoding utf-8 \     # optional: override CSV encoding
   --output-basename articles_{year}.pkl \  # optional: shorter filenames
+  --year-folder-template NData_{year} \    # optional: rename year folders while keeping {year}
   --write-manifest \       # optional: write manifest.json describing processing steps
   --output-root /path/to/raw_data_root
 ```
 
 The script will create one pickle per year in `output-root`, matching the
 layout expected by `scripts/training/TrainingPhraser_CleanedUp.py` and
-`scripts/training/TrainingW2V_Booted_CleanedUp.py`. If you override `--output-basename`, keep
-`{year}` in the template so each folder still contains a distinct file per year;
-`--write-manifest` adds a `manifest.json` per year to document the cleaning and
-splitting steps without encoding that history in the filename. The default
-basename preserves backward compatibility with existing pipelines, but shorter
-names are safe as long as the per-year folder names remain `NData_<year>`.
+`scripts/training/TrainingW2V_Booted_CleanedUp.py`. If you override `--output-basename`
+or `--year-folder-template`, keep `{year}` in the template so each folder still
+contains a distinct file per year; matching the defaults preserves compatibility
+with existing runs. `--write-manifest` adds a `manifest.json` per year to
+document the cleaning and splitting steps without encoding that history in the
+filename.

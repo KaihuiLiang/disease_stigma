@@ -82,13 +82,15 @@ def write_pickles(
     output_root: Path,
     *,
     basename_template: str,
+    year_dir_template: str,
     write_manifest: bool,
     manifest_name: str = "manifest.json",
     source_csv: Path,
     args: argparse.Namespace,
 ) -> None:
     for year, articles in grouped_articles.items():
-        year_dir = output_root / f"NData_{year}"
+        year_dir_name = year_dir_template.format(year=year)
+        year_dir = output_root / year_dir_name
         year_dir.mkdir(parents=True, exist_ok=True)
         pickle_name = basename_template.format(year=year)
         pickle_path = year_dir / pickle_name
@@ -111,6 +113,7 @@ def write_pickles(
                 },
                 "default_year": args.default_year,
                 "min_body_chars": args.min_body_chars,
+                "year_dir": year_dir_name,
                 "processing_steps": [
                     "clean_text (collapse whitespace, strip)",
                     "split_sentences (regex-based)",
@@ -158,6 +161,14 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--year-folder-template",
+        default="NData_{year}",
+        help=(
+            "Folder name template for grouping yearly pickles. Keep '{year}' so folders stay unique; "
+            "matching the default preserves compatibility with downstream scripts."
+        ),
+    )
+    parser.add_argument(
         "--write-manifest",
         action="store_true",
         help="Also write a manifest.json per year describing processing steps and parameters.",
@@ -186,6 +197,8 @@ def main() -> None:
 
     if "{year}" not in args.output_basename:
         raise ValueError("--output-basename must include '{year}' so each year's pickle remains distinct.")
+    if "{year}" not in args.year_folder_template:
+        raise ValueError("--year-folder-template must include '{year}' so yearly folders remain distinct.")
 
     grouped_articles: dict[int, list[str]] = defaultdict(list)
     seen_ids: set[str] = set()
@@ -215,6 +228,7 @@ def main() -> None:
         grouped_articles,
         args.output_root,
         basename_template=args.output_basename,
+        year_dir_template=args.year_folder_template,
         write_manifest=args.write_manifest,
         source_csv=args.csv_path,
         args=args,
