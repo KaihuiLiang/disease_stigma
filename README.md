@@ -73,9 +73,9 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
 
 `config/path_config.py` centralizes path handling. Scripts import it via `from config.path_config import add_path_arguments, build_path_config` and accept consistent CLI flags:
 
-* `--raw-data-root`: Base directory containing `NData_<year>` folders with article pickles (default: `data/raw`).
+* `--raw-data-root`: Base directory containing `NData_<year>` folders with article pickles (default: `data/preprocessed`).
 * `--contemp-data-root`: Optional override for `ContempData_<year>` folders (falls back to `--raw-data-root`).
-* `--modeling-dir`: Intermediate artifacts such as bigrams, bootstraps, and embeddings (default: `outputs/models`).
+* `--modeling-dir-base`: Base directory for modeling outputs (default: `outputs/models`). Phraser models will be saved in `<base>/phrasers`, W2V models in `<base>/BootstrappedModels`.
 * `--results-dir`: Where result CSVs and plots are written (default: `outputs/results`).
 * `--analyses-dir`: Base directory for ancillary files (default: `analysis`).
 * `--lexicon-path`, `--disease-list-path`, `--personality-traits-path`: Paths to the bundled CSV inputs in `reference_data/`.
@@ -94,12 +94,12 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
    - Single window:
      ```bash
      python training/TrainingPhraser_CleanedUp.py \
-       --start-year 1992 --year-interval 3 --raw-data-root data/preprocessed --modeling-dir outputs/models
+       --start-year 1992 --year-interval 3 --raw-data-root data/preprocessed --modeling-dir-base outputs/models
      ```
    - Batch mode (multiple windows):
      ```bash
      python training/TrainingPhraser_CleanedUp.py \
-       --start-year 1980 --year-interval 3 --end-year 1991 --raw-data-root data/preprocessed --modeling-dir outputs/models
+       --start-year 1980 --year-interval 3 --end-year 1991 --raw-data-root data/preprocessed --modeling-dir-base outputs/models
      ```
    這會自動從 1980~1982、1983~1985... 一直到 1991，依序訓練所有分組。
 
@@ -108,34 +108,34 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
      ```bash
      python training/TrainingW2V_Booted_CleanUp.py \
        --start-year 1992 --year-interval 3 --boots 25 --model-prefix CBOW_300d__win10_min50_iter3 \
-       --raw-data-root data/preprocessed --modeling-dir outputs/models
+       --raw-data-root data/preprocessed --modeling-dir-base outputs/models
      ```
    - 批次模式（多組）：
      ```bash
      python training/TrainingW2V_Booted_CleanUp.py \
        --start-year 1980 --year-interval 3 --end-year 1991 --boots 25 --model-prefix CBOW_300d__win10_min50_iter3 \
-       --raw-data-root data/preprocessed --modeling-dir outputs/models
+       --raw-data-root data/preprocessed --modeling-dir-base outputs/models
      ```
    這會自動從 1980~1982、1983~1985... 一直到 1991，依序訓練所有分組。
 
 4. **Compute stigma scores per dimension**:
    ```bash
    python analysis/WriteStigmaScores_CleanedUp.py \
-     --modeling-dir outputs/models --results-dir outputs/results
+     --modeling-dir-base outputs/models --results-dir outputs/results
    ```
 
 5. **Aggregate and plot**:
    ```bash
    python analysis/AggregatingStigmaScores_StigmaIndex_CleanedUp.py \
-     --modeling-dir outputs/models --results-dir outputs/results
+     --modeling-dir-base outputs/models --results-dir outputs/results
 
    python analysis/PlottingBootstrapped_CleanedUp.py \
      --dimension stigmaindex --results-dir outputs/results
    ```
 
 6. **Validate models** (examples):
-   * Overall analogies: `python validation/Validating_OverallW2VModels_CleanedUp.py --model-path outputs/models/<model>`
-   * Dimension quality: `python validation/Validating_Dimensions_in_Bootstraps_CleanedUp.py --modeling-dir outputs/models`
+  * Overall analogies: `python validation/Validating_OverallW2VModels_CleanedUp.py --model-path outputs/models/<model>`
+  * Dimension quality: `python validation/Validating_Dimensions_in_Bootstraps_CleanedUp.py --modeling-dir-base outputs/models`
 
 ## Notes and outstanding manual adjustments
 
