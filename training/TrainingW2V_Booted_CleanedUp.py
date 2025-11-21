@@ -57,7 +57,8 @@ class PhrasingIterable(object):
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Train bootstrapped Word2Vec models.")
     add_path_arguments(parser)
-    parser.add_argument("--year", type=int, default=1992, help="Start year of the window (e.g., 1992).")
+    parser.add_argument("--start-year", type=int, default=1992, help="Start year of the window (e.g., 1992).")
+    parser.add_argument("--end-year", type=int, default=None, help="End year for batch training (optional)")
     parser.add_argument("--year-interval", type=int, default=3, help="Number of years to include in the window.")
     parser.add_argument("--boots", type=int, default=25, help="Number of bootstrap models to train.")
     parser.add_argument(
@@ -79,27 +80,55 @@ def main():
     args = parse_arguments()
     paths = build_path_config(args)
 
-    bigram_transformer = Phraser.load(str(paths.bigram_path(args.year, args.year_interval)))
-
-    for boot in range(args.boots):
-        write_booted_txt(paths, args.year, boot, paths.bootstrap_corpus_path(args.year, args.year_interval), args.year_interval)
-        sentences = SentenceIterator(paths.bootstrap_corpus_path(args.year, args.year_interval))
-        corpus = PhrasingIterable(bigram_transformer, sentences)
-        time.sleep(args.sleep)
-        model1 = Word2Vec(
-            corpus,
-            workers=args.workers,
-            window=args.window,
-            sg=0,
-            size=args.vector_size,
-            min_count=args.min_count,
-            iter=args.iterations,
-        )
-        model1.init_sims(replace=True)
-        model_path = paths.bootstrap_model_path(args.year, boot, args.model_prefix, args.year_interval)
-        model_path.parent.mkdir(parents=True, exist_ok=True)
-        model1.save(str(model_path))
-        time.sleep(args.sleep)
+    if args.end_year is not None:
+        # Batch mode: loop from start_year to end_year
+        current_start = args.start_year
+        while current_start <= args.end_year:
+            current_interval = min(args.year_interval, args.end_year - current_start + 1)
+            print(f"Training W2V for {current_start}-{current_start + current_interval - 1}")
+            bigram_transformer = Phraser.load(str(paths.bigram_path(current_start, current_interval)))
+            for boot in range(args.boots):
+                write_booted_txt(paths, current_start, boot, paths.bootstrap_corpus_path(current_start, current_interval), current_interval)
+                sentences = SentenceIterator(paths.bootstrap_corpus_path(current_start, current_interval))
+                corpus = PhrasingIterable(bigram_transformer, sentences)
+                time.sleep(args.sleep)
+                model1 = Word2Vec(
+                    corpus,
+                    workers=args.workers,
+                    window=args.window,
+                    sg=0,
+                    size=args.vector_size,
+                    min_count=args.min_count,
+                    iter=args.iterations,
+                )
+                model1.init_sims(replace=True)
+                model_path = paths.bootstrap_model_path(current_start, boot, args.model_prefix, current_interval)
+                model_path.parent.mkdir(parents=True, exist_ok=True)
+                model1.save(str(model_path))
+                time.sleep(args.sleep)
+            current_start += args.year_interval
+    else:
+        # Single interval mode
+        bigram_transformer = Phraser.load(str(paths.bigram_path(args.start_year, args.year_interval)))
+        for boot in range(args.boots):
+            write_booted_txt(paths, args.start_year, boot, paths.bootstrap_corpus_path(args.start_year, args.year_interval), args.year_interval)
+            sentences = SentenceIterator(paths.bootstrap_corpus_path(args.start_year, args.year_interval))
+            corpus = PhrasingIterable(bigram_transformer, sentences)
+            time.sleep(args.sleep)
+            model1 = Word2Vec(
+                corpus,
+                workers=args.workers,
+                window=args.window,
+                sg=0,
+                size=args.vector_size,
+                min_count=args.min_count,
+                iter=args.iterations,
+            )
+            model1.init_sims(replace=True)
+            model_path = paths.bootstrap_model_path(args.start_year, boot, args.model_prefix, args.year_interval)
+            model_path.parent.mkdir(parents=True, exist_ok=True)
+            model1.save(str(model_path))
+            time.sleep(args.sleep)
 
 
 if __name__ == "__main__":

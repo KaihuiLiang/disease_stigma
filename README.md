@@ -41,7 +41,9 @@ An example aggregated output is provided at `outputs/results/stigmaindex_aggrega
 * `training/TrainingPhraser_CleanedUp.py`: Train phrasers on text data for configurable time windows. Supports two modes:
   - Single window: Specify `--start-year` and `--year-interval` to train one phraser for that interval.
   - Batch mode: Add `--end-year` to automatically train phrasers for all intervals from `start-year` to `end-year` (inclusive), each of length `year-interval`.
-* `training/TrainingW2V_Booted_CleanedUp.py`: Train bootstrapped Word2Vec models using the phrasers trained for each time window.
+* `training/TrainingW2V_Booted_CleanedUp.py`: Train bootstrapped Word2Vec models for configurable time windows. Supports two modes:
+  - Single window: Specify `--start-year` and `--year-interval` to train models for one interval.
+  - Batch mode: Add `--end-year` to automatically train models for all intervals from `start-year` to `end-year` (inclusive), each of length `year-interval`. Each interval will use its corresponding phraser model.
 
 ### Validation
 * `validation/Validating_OverallW2VModels_CleanedUp.py`: Validate an overall Word2Vec model on the WordSim-353 test set and the Google analogy test (`reference_data/questions_words_pasted.txt`).
@@ -102,11 +104,19 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
    這會自動從 1980~1982、1983~1985... 一直到 1991，依序訓練所有分組。
 
 3. **Train bootstrapped Word2Vec models**:
-   ```bash
-   python training/TrainingW2V_Booted_CleanedUp.py \
-     --year 1992 --boots 25 --model-prefix CBOW_300d__win10_min50_iter3 \
-     --raw-data-root data/raw --modeling-dir outputs/models
-   ```
+   - 單組模式：
+     ```bash
+     python training/TrainingW2V_Booted_CleanUp.py \
+       --start-year 1992 --year-interval 3 --boots 25 --model-prefix CBOW_300d__win10_min50_iter3 \
+       --raw-data-root data/preprocessed --modeling-dir outputs/models
+     ```
+   - 批次模式（多組）：
+     ```bash
+     python training/TrainingW2V_Booted_CleanUp.py \
+       --start-year 1980 --year-interval 3 --end-year 1991 --boots 25 --model-prefix CBOW_300d__win10_min50_iter3 \
+       --raw-data-root data/preprocessed --modeling-dir outputs/models
+     ```
+   這會自動從 1980~1982、1983~1985... 一直到 1991，依序訓練所有分組。
 
 4. **Compute stigma scores per dimension**:
    ```bash
