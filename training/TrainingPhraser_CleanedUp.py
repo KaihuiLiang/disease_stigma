@@ -44,6 +44,7 @@ def parse_arguments():
     add_path_arguments(parser)
     parser.add_argument("--start-year", type=int, default=1992, help="Start year of the window (e.g., 1992).")
     parser.add_argument("--year-interval", type=int, default=3, help="Number of years to include in the window.")
+    parser.add_argument("--end-year", type=int, default=None, help="End year for batch training (optional)")
     return parser.parse_args()
 
 
@@ -51,8 +52,19 @@ def main():
     args = parse_arguments()
     paths = build_path_config(args)
 
-    sampled_articles_for_bigrammer = load_articles(paths, args.start_year, args.year_interval)
-    train_bigrammer(sampled_articles_for_bigrammer, paths.bigram_path(args.start_year, args.year_interval))
+    if args.end_year is not None:
+        # Batch mode: loop from start_year to end_year
+        current_start = args.start_year
+        while current_start <= args.end_year:
+            current_interval = min(args.year_interval, args.end_year - current_start + 1)
+            print(f"Training bigrammer for {current_start}-{current_start + current_interval - 1}")
+            sampled_articles_for_bigrammer = load_articles(paths, current_start, current_interval)
+            train_bigrammer(sampled_articles_for_bigrammer, paths.bigram_path(current_start, current_interval))
+            current_start += args.year_interval
+    else:
+        # Single interval mode
+        sampled_articles_for_bigrammer = load_articles(paths, args.start_year, args.year_interval)
+        train_bigrammer(sampled_articles_for_bigrammer, paths.bigram_path(args.start_year, args.year_interval))
 
 
 if __name__ == "__main__":

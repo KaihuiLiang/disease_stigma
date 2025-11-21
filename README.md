@@ -38,7 +38,9 @@ An example aggregated output is provided at `outputs/results/stigmaindex_aggrega
 * `data_prep/build_lexicon_stigma.py`: Build stigma-related lexicons used across training, validation, and analysis steps.
 
 ### Training
-* `training/TrainingPhraser_CleanedUp.py`: Train a phraser on text data from a given time window (one phraser per window).
+* `training/TrainingPhraser_CleanedUp.py`: Train phrasers on text data for configurable time windows. Supports two modes:
+  - Single window: Specify `--start-year` and `--year-interval` to train one phraser for that interval.
+  - Batch mode: Add `--end-year` to automatically train phrasers for all intervals from `start-year` to `end-year` (inclusive), each of length `year-interval`.
 * `training/TrainingW2V_Booted_CleanedUp.py`: Train bootstrapped Word2Vec models using the phrasers trained for each time window.
 
 ### Validation
@@ -86,11 +88,18 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
      --default-year 2010 --output-root data/preprocessed --write-manifest
    ```
 
-2. **Train phrase model for a 3-year window**:
-   ```bash
-   python training/TrainingPhraser_CleanedUp.py \
-     --start-year 1992 --year-interval 3 --raw-data-root data/preprocessed --modeling-dir outputs/models
-   ```
+2. **Train phrase model(s) for time windows**:
+   - Single window:
+     ```bash
+     python training/TrainingPhraser_CleanedUp.py \
+       --start-year 1992 --year-interval 3 --raw-data-root data/preprocessed --modeling-dir outputs/models
+     ```
+   - Batch mode (multiple windows):
+     ```bash
+     python training/TrainingPhraser_CleanedUp.py \
+       --start-year 1980 --year-interval 3 --end-year 1991 --raw-data-root data/preprocessed --modeling-dir outputs/models
+     ```
+   這會自動從 1980~1982、1983~1985... 一直到 1991，依序訓練所有分組。
 
 3. **Train bootstrapped Word2Vec models**:
    ```bash
