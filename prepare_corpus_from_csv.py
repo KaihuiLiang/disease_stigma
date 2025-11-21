@@ -68,9 +68,9 @@ def build_article_text(title: str, body: str) -> str:
     return SENT_BOUNDARY.join(sentences)
 
 
-def iter_rows(csv_path: Path, *, encoding: str) -> Iterable[dict[str, str]]:
+def iter_rows(csv_path: Path, *, encoding: str, delimiter: str) -> Iterable[dict[str, str]]:
     with csv_path.open(newline="", encoding=encoding) as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, delimiter=delimiter)
         if reader.fieldnames is None:
             raise ValueError("CSV appears to have no header row.")
         for row in reader:
@@ -165,6 +165,11 @@ def parse_args() -> argparse.Namespace:
         help="Encoding of the input CSV file (default: utf-8).",
     )
     parser.add_argument(
+        "--delimiter",
+        default=",",
+        help="Field delimiter for the input CSV file (default: ',').",
+    )
+    parser.add_argument(
         "--id-column",
         default=None,
         help="Optional column used to drop duplicate rows (e.g., an article ID).",
@@ -185,7 +190,7 @@ def main() -> None:
     seen_ids: set[str] = set()
     skipped_empty = 0
     skipped_short = 0
-    for row in iter_rows(args.csv_path, encoding=args.encoding):
+    for row in iter_rows(args.csv_path, encoding=args.encoding, delimiter=args.delimiter):
         if args.id_column:
             row_id = clean_text(row.get(args.id_column))
             if row_id and row_id in seen_ids:

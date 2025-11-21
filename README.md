@@ -9,8 +9,12 @@ Preprint of paper is available here: https://osf.io/preprints/socarxiv/7nm9x/. D
 
 
 **Final_Search_SymptomsDiseasesList.txt**
-* List of search terms used for symptoms and diseases, we used this search term list to collect news articles via the Lexis Nexis API. 
+* List of search terms used for symptoms and diseases, we used this search term list to collect news articles via the Lexis Nexis API.
 * Note: We do not include code to collect raw news data using the Lexis Nexis API. Our code for this is lightly adapted from code provided to us by the University of Michigan to use the LexisNexis API and uses private API keys. We cannot redstribute the raw data collected from Lexis Nexis API.
+
+**Path configuration and inputs**
+* Most scripts now share the same command-line arguments for specifying input and output locations via `path_config.py`. Use `--raw-data-root` to point to your `NData_<year>` folders, `--modeling-dir` for intermediate artifacts (bigrams, bootstraps, and embeddings), and `--results-dir` for aggregated outputs and plots. When working with contemporaneous data, pass `--contemp-data-root` to override the raw data location. All arguments have sensible defaults when a particular script does not require them.
+* The CSV-to-pickle converter `prepare_corpus_from_csv.py` accepts additional options to tailor incoming corpora: `--default-year` to stamp articles without a date column, `--encoding` to read non-UTF8 files, `--delimiter` to parse non-comma-separated files, and `--write-manifest` to emit a per-year `manifest.json` that records the parameters used. These options make it easier to align third-party data with the rest of the pipeline without hand-editing the code.
 
 **TrainingPhraser_CleanedUp.py**
 * Train a phraser on text data from a given time window. One phraser trained per time window.
@@ -77,6 +81,7 @@ python prepare_corpus_from_csv.py \
   --id-column GOID \     # optional: drop duplicates with this column
   --min-body-chars 50 \  # optional: skip very short rows
   --encoding utf-8 \     # optional: override CSV encoding
+  --delimiter ',' \      # optional: parse non-comma-separated CSVs
   --output-basename articles_{year}.pkl \  # optional: shorter filenames
   --write-manifest \       # optional: write manifest.json describing processing steps
   --output-root /path/to/raw_data_root
