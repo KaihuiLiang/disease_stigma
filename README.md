@@ -99,6 +99,7 @@ layout expected by `scripts/training/TrainingPhraser_CleanedUp.py` and
 `scripts/training/TrainingW2V_Booted_CleanedUp.py`. If you override `--output-basename`
 or `--year-folder-template`, keep `{year}` in the template so each folder still
 contains a distinct file per year; matching the defaults preserves compatibility
-with existing runs. `--write-manifest` adds a `manifest.json` per year to
-document the cleaning and splitting steps without encoding that history in the
-filename.
+with existing runs. `--write-manifest` adds a `manifest.json` per year that
+records the chosen basename template and year-folder template in addition to the
+cleaning and splitting steps, so downstream code can mirror the exact layout
+without relying on encoded hints in the filename itself.

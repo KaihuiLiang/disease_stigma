@@ -102,6 +102,7 @@ def write_pickles(
             manifest = {
                 "year": year,
                 "pickle": pickle_name,
+                "output_basename_template": basename_template,
                 "article_count": len(articles),
                 "generated_at": datetime.now(timezone.utc).isoformat(),
                 "source_csv": str(source_csv),
@@ -114,6 +115,7 @@ def write_pickles(
                 "default_year": args.default_year,
                 "min_body_chars": args.min_body_chars,
                 "year_dir": year_dir_name,
+                "year_folder_template": year_dir_template,
                 "processing_steps": [
                     "clean_text (collapse whitespace, strip)",
                     "split_sentences (regex-based)",
