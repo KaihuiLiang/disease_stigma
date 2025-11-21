@@ -92,6 +92,9 @@ def main():
                 sentences = SentenceIterator(paths.bootstrap_corpus_path(current_start, current_interval))
                 corpus = list(PhrasingIterable(bigram_transformer, sentences))
                 time.sleep(args.sleep)
+                if not corpus:
+                    print(f"Warning: Empty corpus for years {current_start}-{current_start + current_interval - 1}, boot {boot}. Skipping.")
+                    continue
                 model1 = Word2Vec(
                     workers=args.workers,
                     window=args.window,
@@ -114,6 +117,9 @@ def main():
             sentences = SentenceIterator(paths.bootstrap_corpus_path(args.start_year, args.year_interval))
             corpus = list(PhrasingIterable(bigram_transformer, sentences))
             time.sleep(args.sleep)
+            if not corpus:
+                print(f"Warning: Empty corpus for years {args.start_year}-{args.start_year + args.year_interval - 1}, boot {boot}. Skipping.")
+                continue
             model1 = Word2Vec(
                 workers=args.workers,
                 window=args.window,
