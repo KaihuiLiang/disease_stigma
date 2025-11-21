@@ -83,13 +83,13 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
    python data_prep/prepare_corpus_from_csv.py \
      --csv-path /path/to/articles.csv \
      --text-column Text --title-column title --date-column Date \
-     --default-year 2010 --output-root data/raw --write-manifest
+     --default-year 2010 --output-root data/preprocessed --write-manifest
    ```
 
 2. **Train phrase model for a 3-year window**:
    ```bash
    python training/TrainingPhraser_CleanedUp.py \
-     --year 1992 --raw-data-root data/raw --modeling-dir outputs/models
+     --start-year 1992 --year-interval 3 --raw-data-root data/preprocessed --modeling-dir outputs/models
    ```
 
 3. **Train bootstrapped Word2Vec models**:

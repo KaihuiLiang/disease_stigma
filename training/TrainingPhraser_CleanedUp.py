@@ -42,7 +42,7 @@ def train_bigrammer(sampled_articles, save_path: Path):
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Train bigram models for a configurable year window.")
     add_path_arguments(parser)
-    parser.add_argument("--year", type=int, default=1992, help="Start year of the window (e.g., 1992).")
+    parser.add_argument("--start-year", type=int, default=1992, help="Start year of the window (e.g., 1992).")
     parser.add_argument("--year-interval", type=int, default=3, help="Number of years to include in the window.")
     return parser.parse_args()
 
@@ -51,8 +51,8 @@ def main():
     args = parse_arguments()
     paths = build_path_config(args)
 
-    sampled_articles_for_bigrammer = load_articles(paths, args.year, args.year_interval)
-    train_bigrammer(sampled_articles_for_bigrammer, paths.bigram_path(args.year, args.year_interval))
+    sampled_articles_for_bigrammer = load_articles(paths, args.start_year, args.year_interval)
+    train_bigrammer(sampled_articles_for_bigrammer, paths.bigram_path(args.start_year, args.year_interval))
 
 
 if __name__ == "__main__":
