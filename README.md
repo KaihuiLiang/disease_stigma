@@ -10,7 +10,7 @@ Preprint of paper is available here: https://osf.io/preprints/socarxiv/7nm9x/. D
 
 ## Repository layout
 
-The repository is organized by function under the `scripts/` directory; shared inputs live in `data/`.
+The repository is organized by function under the `scripts/` directory; shared inputs live in `data/`. Run each script as a module from the repository root (for example, `python -m scripts.scoring.WriteStigmaScores_CleanedUp --help`) so that relative imports work consistently after merges.
 
 * `scripts/corpus/prepare_corpus_from_csv.py`: Convert CSV corpora into yearly pickled article lists.
 * `scripts/training/TrainingPhraser_CleanedUp.py`: Train phrase models on 3-year windows.
@@ -98,4 +98,6 @@ layout expected by `scripts/training/TrainingPhraser_CleanedUp.py` and
 `scripts/training/TrainingW2V_Booted_CleanedUp.py`. If you override `--output-basename`, keep
 `{year}` in the template so each folder still contains a distinct file per year;
 `--write-manifest` adds a `manifest.json` per year to document the cleaning and
-splitting steps without encoding that history in the filename.
+splitting steps without encoding that history in the filename. The default
+basename preserves backward compatibility with existing pipelines, but shorter
+names are safe as long as the per-year folder names remain `NData_<year>`.

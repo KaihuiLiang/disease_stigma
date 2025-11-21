@@ -144,7 +144,10 @@ def parse_args() -> argparse.Namespace:
         "--output-root",
         type=Path,
         required=True,
-        help="Root directory to write NData_<year>/all<year>bodytexts_regexeddisamb_listofarticles pickles.",
+        help=(
+            "Root directory to write NData_<year>/all<year>bodytexts_regexeddisamb_listofarticles pickles. "
+            "Each NData_<year> folder is created if missing."
+        ),
     )
     parser.add_argument(
         "--output-basename",
@@ -180,6 +183,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+
+    if "{year}" not in args.output_basename:
+        raise ValueError("--output-basename must include '{year}' so each year's pickle remains distinct.")
 
     grouped_articles: dict[int, list[str]] = defaultdict(list)
     seen_ids: set[str] = set()
