@@ -93,15 +93,14 @@ def main():
                 corpus = PhrasingIterable(bigram_transformer, sentences)
                 time.sleep(args.sleep)
                 model1 = Word2Vec(
-                    corpus,
                     workers=args.workers,
                     window=args.window,
                     sg=0,
                     vector_size=args.vector_size,
                     min_count=args.min_count,
-                    epochs=args.iterations,
                 )
-                model1.init_sims(replace=True)
+                model1.build_vocab(corpus)
+                model1.train(corpus, total_examples=model1.corpus_count, epochs=args.iterations)
                 model_path = paths.bootstrap_model_path(current_start, boot, args.model_prefix, current_interval)
                 model_path.parent.mkdir(parents=True, exist_ok=True)
                 model1.save(str(model_path))
@@ -116,15 +115,14 @@ def main():
             corpus = PhrasingIterable(bigram_transformer, sentences)
             time.sleep(args.sleep)
             model1 = Word2Vec(
-                corpus,
                 workers=args.workers,
                 window=args.window,
                 sg=0,
                 vector_size=args.vector_size,
                 min_count=args.min_count,
-                epochs=args.iterations,
             )
-            model1.init_sims(replace=True)
+            model1.build_vocab(corpus)
+            model1.train(corpus, total_examples=model1.corpus_count, epochs=args.iterations)
             model_path = paths.bootstrap_model_path(args.start_year, boot, args.model_prefix, args.year_interval)
             model_path.parent.mkdir(parents=True, exist_ok=True)
             model1.save(str(model_path))
