@@ -108,12 +108,12 @@ def main():
                     min_count=args.min_count,
                 )
                 model1.build_vocab(corpus)
-                print(f"[DEBUG] Vocabulary size: {len(model1.wv)}")
-                if len(model1.wv) > 0:
-                    print(f"[DEBUG] Top 10 words: {model1.wv.index_to_key[:10]}")
                 if model1.corpus_count == 0 or len(model1.wv) == 0:
                     print(f"Warning: No vocabulary built for years {current_start}-{current_start + current_interval - 1}, boot {boot}. Skipping.")
                     continue
+                print(f"[DEBUG] Vocabulary size: {len(model1.wv)}")
+                if len(model1.wv) > 0:
+                    print(f"[DEBUG] Top 10 words: {model1.wv.index_to_key[:10]}")
                 model1.train(corpus, total_examples=model1.corpus_count, epochs=args.iterations)
                 model_path = paths.bootstrap_model_path(current_start, boot, args.model_prefix, current_interval)
                 model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -144,12 +144,12 @@ def main():
                 min_count=args.min_count,
             )
             model1.build_vocab(corpus)
-            print(f"[DEBUG] Vocabulary size: {len(model1.wv)}")
-            if len(model1.wv) > 0:
-                print(f"[DEBUG] Top 10 words: {model1.wv.index_to_key[:10]}")
             if model1.corpus_count == 0 or len(model1.wv) == 0:
                 print(f"Warning: No vocabulary built for years {args.start_year}-{args.start_year + args.year_interval - 1}, boot {boot}. Skipping.")
                 continue
+            print(f"[DEBUG] Vocabulary size: {len(model1.wv)}")
+            if len(model1.wv) > 0:
+                print(f"[DEBUG] Top 10 words: {model1.wv.index_to_key[:10]}")
             model1.train(corpus, total_examples=model1.corpus_count, epochs=args.iterations)
             model_path = paths.bootstrap_model_path(args.start_year, boot, args.model_prefix, args.year_interval)
             model_path.parent.mkdir(parents=True, exist_ok=True)
