@@ -91,8 +91,9 @@ def add_folded_terms(model):
     return model
 
 
-def melt_dimension_scores(diseases, dimension_to_plot, boot_range):
-    score_columns = [f"{dimension_to_plot}_score_stdized_{i}" for i in boot_range]
+def melt_dimension_scores(diseases, dimension_to_plot, score_columns):
+    if not score_columns:
+        return pd.DataFrame(columns=["Reconciled_Name", "PlottingGroup", "Year", "BootNumber", dimension_to_plot])
     return pd.melt(
         diseases[["Reconciled_Name", "PlottingGroup", "Year", *score_columns]],
         id_vars=["Reconciled_Name", "PlottingGroup", "Year"],
@@ -121,6 +122,7 @@ def compute_dimension_scores(
 ):
     for yr1 in years:
         diseases = load_diseases(paths)
+        score_columns = []
         for bootnum in boot_range:
             model_path = paths.bootstrap_model_path(yr1, bootnum, model_prefix)
             if not model_path.exists():
@@ -140,12 +142,17 @@ def compute_dimension_scores(
             dimension_obj = dimension_stigma.dimension(dimension_words, "larsen")
             kv = currentmodel1.wv if hasattr(currentmodel1, "wv") else currentmodel1
             allwordssims = dimension_obj.cos_sim(list(kv.key_to_index), returnNAs=False)
-            diseases[f"{dimension_name}_score_stdized_{bootnum}"] = diseases["Reconciled_Name"].apply(
+            colname = f"{dimension_name}_score_stdized_{bootnum}"
+            diseases[colname] = diseases["Reconciled_Name"].apply(
                 lambda x: (dimension_obj.cos_sim([str(x).lower()], returnNAs=True)[0] - np.mean(allwordssims))
                 / np.std(allwordssims)
             )
+            score_columns.append(colname)
         diseases["Year"] = [str(yr1)] * len(diseases)
-        melted = melt_dimension_scores(diseases, dimension_name, boot_range)
+        melted = melt_dimension_scores(diseases, dimension_name, score_columns)
+        if melted.empty:
+            print(f"No scores produced for {dimension_name} {yr1}; skipping write.")
+            continue
         output_dir.mkdir(parents=True, exist_ok=True)
         melted.to_csv(output_dir / f"temp{dimension_name}{yr1}.csv")
 
