@@ -118,13 +118,17 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
      ```
    這會自動從 1980~1982、1983~1985... 一直到 1991，依序訓練所有分組。
 
-4. **Compute stigma scores per dimension**:
+4. **Validate models** (run after training to catch issues early):
+  * Overall analogies: `python validation/Validating_OverallW2VModels_CleanedUp.py --model-path outputs/models/<model>`
+  * Dimension quality: `python validation/Validating_Dimensions_in_Bootstraps_CleanedUp.py --modeling-dir-base outputs/models`
+
+5. **Compute stigma scores per dimension**:
    ```bash
    python analysis/WriteStigmaScores_CleanedUp.py \
      --modeling-dir-base outputs/models --results-dir outputs/results
    ```
 
-5. **Aggregate and plot**:
+6. **Aggregate and plot**:
    ```bash
    python analysis/AggregatingStigmaScores_StigmaIndex_CleanedUp.py \
      --modeling-dir-base outputs/models --results-dir outputs/results
@@ -132,10 +136,6 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
    python analysis/PlottingBootstrapped_CleanedUp.py \
      --dimension stigmaindex --results-dir outputs/results
    ```
-
-6. **Validate models** (examples):
-  * Overall analogies: `python validation/Validating_OverallW2VModels_CleanedUp.py --model-path outputs/models/<model>`
-  * Dimension quality: `python validation/Validating_Dimensions_in_Bootstraps_CleanedUp.py --modeling-dir-base outputs/models`
 
 ## Notes and outstanding manual adjustments
 
