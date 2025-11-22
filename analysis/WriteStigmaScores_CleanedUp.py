@@ -15,7 +15,6 @@ from analysis import dimension_stigma
 from config.path_config import add_path_arguments, build_path_config
 
 
-YEARS = [1980, 1983, 1986, 1989, 1992, 1995, 1998, 2001, 2004, 2007, 2010, 2013, 2016]
 DEFAULT_BOOTS = 25
 
 
@@ -45,6 +44,16 @@ def parse_arguments():
         type=int,
         default=DEFAULT_BOOTS,
         help="Number of bootstrapped models to load per year (default: 25).",
+    )
+    parser.add_argument("--start-year", type=int, default=1980, help="Start year of the window (e.g., 1992).")
+    parser.add_argument(
+        "--year-interval", type=int, default=3, help="Number of years to include in each window (e.g., 3 for 1992-1994)."
+    )
+    parser.add_argument(
+        "--end-year",
+        type=int,
+        default=None,
+        help="Optional end year; when set, will score windows from start-year to end-year stepping by year-interval.",
     )
     return parser.parse_args()
 
@@ -146,6 +155,10 @@ def main():
     paths = build_path_config(args)
     output_dir = args.output_dir or args.results_dir
     boot_range = range(args.boots)
+    if args.end_year is not None:
+        years = list(range(args.start_year, args.end_year + 1, args.year_interval))
+    else:
+        years = [args.start_year]
 
     lexicon = pd.read_csv(paths.lexicon_path)
     lexicon = lexicon[lexicon["Removed"] != "remove"]
@@ -163,11 +176,11 @@ def main():
     impurewords = lexicon.loc[(lexicon["WhichPole"] == "impure")]["Term"].str.lower().tolist()
 
     compute_dimension_scores(
-        paths, YEARS, "danger", dangerouswords, safewords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
+        paths, years, "danger", dangerouswords, safewords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
     )
     compute_dimension_scores(
         paths,
-        YEARS,
+        years,
         "disgust",
         disgustingwords,
         enticingwords,
@@ -177,10 +190,10 @@ def main():
         boot_range,
     )
     compute_dimension_scores(
-        paths, YEARS, "immorality", immoralwords, moralwords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
+        paths, years, "immorality", immoralwords, moralwords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
     )
     compute_dimension_scores(
-        paths, YEARS, "impurity", impurewords, purewords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
+        paths, years, "impurity", impurewords, purewords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
     )
 
 
