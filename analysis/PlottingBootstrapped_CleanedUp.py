@@ -30,6 +30,12 @@ def parse_arguments():
         default=None,
         help="Directory to store generated plots (defaults to results dir).",
     )
+    parser.add_argument(
+        "--min-count",
+        type=int,
+        default=20,
+        help="Minimum bootstrap samples per disease/group to include in plots (default: 20).",
+    )
     return parser.parse_args()
 
 
@@ -40,6 +46,10 @@ def main():
     output_dir = args.output_dir or paths.results_dir
 
     dat = pd.read_csv(input_file)
+    if dat.empty:
+        print(f"[WARN] No data in {input_file}; skipping plots.")
+        return
+
     mycolors = [
         "Red",
         "Green",
@@ -68,9 +78,16 @@ def main():
 
     for j in set(dat["PlottingGroup"]):
         grouped = dat[dat["PlottingGroup"] == j]
-        grouped = grouped[grouped["count"] > 19]
+        grouped = grouped[grouped["count"] >= args.min_count]
+        if grouped.empty:
+            print(f"[WARN] No rows for plotting group {j} after count filter ({args.min_count}); skipping.")
+            continue
         fig, ax = plt.subplots(1)
         diseases = sorted(set(grouped["Reconciled_Name"].values))
+        if not diseases:
+            print(f"[WARN] No diseases to plot for group {j}; skipping.")
+            plt.close(fig)
+            continue
         for i, disease in enumerate(diseases):
             ax.plot(
                 grouped[grouped["Reconciled_Name"] == disease]["Year"],
