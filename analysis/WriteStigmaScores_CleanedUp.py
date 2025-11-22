@@ -37,8 +37,9 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def fold_word(target, second, wvmodel):
-    kv = wvmodel.wv if hasattr(wvmodel, "wv") else wvmodel
+def fold_word(target, second, kv):
+    if target not in kv.key_to_index or second not in kv.key_to_index:
+        return None
     count_target = kv.get_vecattr(target, "count")
     count_second = kv.get_vecattr(second, "count")
     total = count_target + count_second
@@ -53,21 +54,18 @@ def fold_word(target, second, wvmodel):
 def add_folded_terms(model):
     kv = model.wv if hasattr(model, "wv") else model
 
-    epilepsy_folded = fold_word("epilepsy", "epileptic", kv)
-    drug_addiction_folded = fold_word("drug_addiction", "drug_addict", kv)
-    obesity_folded = fold_word("obesity", "obese", kv)
+    for target, second, new_name in [
+        ("epilepsy", "epileptic", "epilepsy_folded"),
+        ("drug_addiction", "drug_addict", "drug_addiction_folded"),
+        ("obesity", "obese", "obesity_folded"),
+    ]:
+        folded = fold_word(target, second, kv)
+        if folded is None:
+            print(f"Skipping folded term {new_name}: missing '{target}' or '{second}' in vocab.")
+            continue
 
-    kv.add_vectors(["epilepsy_folded"], [epilepsy_folded.ravel()])
-    kv.add_vectors(["drug_addiction_folded"], [drug_addiction_folded.ravel()])
-    kv.add_vectors(["obesity_folded"], [obesity_folded.ravel()])
-
-    kv.set_vecattr("epilepsy_folded", "count", kv.get_vecattr("epileptic", "count") + kv.get_vecattr("epilepsy", "count"))
-    kv.set_vecattr(
-        "drug_addiction_folded",
-        "count",
-        kv.get_vecattr("drug_addict", "count") + kv.get_vecattr("drug_addiction", "count"),
-    )
-    kv.set_vecattr("obesity_folded", "count", kv.get_vecattr("obese", "count") + kv.get_vecattr("obesity", "count"))
+        kv.add_vectors([new_name], [folded.ravel()])
+        kv.set_vecattr(new_name, "count", kv.get_vecattr(target, "count") + kv.get_vecattr(second, "count"))
 
     return model
 
