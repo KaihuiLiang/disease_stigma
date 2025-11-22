@@ -60,6 +60,12 @@ def parse_arguments():
         default=None,
         help="Optional end year; when set, will score windows from start-year to end-year stepping by year-interval.",
     )
+    parser.add_argument(
+        "--plotting-groups",
+        nargs="+",
+        default=None,
+        help="Optional list of PlottingGroup names to include (e.g., neurodevelopmental). If omitted, use all groups with Plot == Yes.",
+    )
     return parser.parse_args()
 
 
@@ -112,6 +118,9 @@ def melt_dimension_scores(diseases, dimension_to_plot, score_columns):
 def load_diseases(paths):
     diseases = pd.read_csv(paths.disease_list_path)
     diseases = diseases[diseases["Plot"] == "Yes"]
+    # If specific plotting groups were requested via CLI, filter here.
+    if hasattr(paths, "plotting_groups") and paths.plotting_groups:
+        diseases = diseases[diseases["PlottingGroup"].isin(paths.plotting_groups)]
     diseases = diseases.drop_duplicates(subset=["Reconciled_Name"])
     return diseases[["PlottingGroup", "Reconciled_Name"]].copy()
 
@@ -193,6 +202,8 @@ def compute_dimension_scores(
 def main():
     args = parse_arguments()
     paths = build_path_config(args)
+    # Attach plotting_groups to paths so load_diseases can filter without changing signature.
+    paths.plotting_groups = args.plotting_groups
     output_dir = args.output_dir or args.results_dir
     boot_range = range(args.boots)
     if args.end_year is not None:

@@ -131,7 +131,8 @@ Install them with `pip install -r requirements.txt` (if available) or `pip insta
    ```bash
    python analysis/WriteStigmaScores_CleanedUp.py \
      --modeling-dir-base outputs/models --results-dir outputs/results \
-     --start-year 1980 --year-interval 3 --end-year 2016 --boots 25
+     --start-year 1980 --year-interval 3 --end-year 2016 --boots 25 \
+     --plotting-groups neurodevelopmental
    ```
    - You may omit `--model-prefix`; the script will read `training_manifest.json` for each interval.
    - For mock data you can use fewer `--boots` and a lower `--lexicon-min-count`.
