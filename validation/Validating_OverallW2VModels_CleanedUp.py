@@ -54,8 +54,12 @@ def main():
         sum_corr = len(acc2[i]["correct"])
         sum_incorr = len(acc2[i]["incorrect"])
         total = sum_corr + sum_incorr
-        print("Accuracy on " + str(acc2_labels[i]) + ": " + str(float(sum_corr) / (total)))
-        accuracy_tracker.append(float(sum_corr) / (total))
+        if total == 0:
+            print(f"Skipping {acc2_labels[i]}: no in-vocab questions (all OOV).")
+            continue
+        accuracy = float(sum_corr) / total
+        print("Accuracy on " + str(acc2_labels[i]) + ": " + str(accuracy))
+        accuracy_tracker.append(accuracy)
 
 
 if __name__ == "__main__":
