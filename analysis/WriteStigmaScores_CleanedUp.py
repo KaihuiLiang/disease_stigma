@@ -16,7 +16,7 @@ from config.path_config import add_path_arguments, build_path_config
 
 
 YEARS = [1980, 1983, 1986, 1989, 1992, 1995, 1998, 2001, 2004, 2007, 2010, 2013, 2016]
-DEFAULT_BOOT_RANGE = range(25)
+DEFAULT_BOOTS = 25
 
 
 def parse_arguments():
@@ -39,6 +39,12 @@ def parse_arguments():
         type=int,
         default=50,
         help="Minimum token count for lexicon words to be included in dimension building (default: 50).",
+    )
+    parser.add_argument(
+        "--boots",
+        type=int,
+        default=DEFAULT_BOOTS,
+        help="Number of bootstrapped models to load per year (default: 25).",
     )
     return parser.parse_args()
 
@@ -76,8 +82,8 @@ def add_folded_terms(model):
     return model
 
 
-def melt_dimension_scores(diseases, dimension_to_plot):
-    score_columns = [f"{dimension_to_plot}_score_stdized_{i}" for i in DEFAULT_BOOT_RANGE]
+def melt_dimension_scores(diseases, dimension_to_plot, boot_range):
+    score_columns = [f"{dimension_to_plot}_score_stdized_{i}" for i in boot_range]
     return pd.melt(
         diseases[["Reconciled_Name", "PlottingGroup", "Year", *score_columns]],
         id_vars=["Reconciled_Name", "PlottingGroup", "Year"],
@@ -93,11 +99,24 @@ def load_diseases(paths):
     return diseases[["PlottingGroup", "Reconciled_Name"]].copy()
 
 
-def compute_dimension_scores(paths, years, dimension_name, positive_terms, negative_terms, model_prefix, output_dir: Path, lexicon_min_count: int):
+def compute_dimension_scores(
+    paths,
+    years,
+    dimension_name,
+    positive_terms,
+    negative_terms,
+    model_prefix,
+    output_dir: Path,
+    lexicon_min_count: int,
+    boot_range,
+):
     for yr1 in years:
         diseases = load_diseases(paths)
-        for bootnum in DEFAULT_BOOT_RANGE:
+        for bootnum in boot_range:
             model_path = paths.bootstrap_model_path(yr1, bootnum, model_prefix)
+            if not model_path.exists():
+                print(f"Skipping {dimension_name} for {yr1} boot {bootnum}: model file not found at {model_path}.")
+                continue
             currentmodel1 = KeyedVectors.load(str(model_path))
             add_folded_terms(currentmodel1)
             dimension_words = build_lexicon_stigma.dimension_lexicon(
@@ -117,7 +136,7 @@ def compute_dimension_scores(paths, years, dimension_name, positive_terms, negat
                 / np.std(allwordssims)
             )
         diseases["Year"] = [str(yr1)] * len(diseases)
-        melted = melt_dimension_scores(diseases, dimension_name)
+        melted = melt_dimension_scores(diseases, dimension_name, boot_range)
         output_dir.mkdir(parents=True, exist_ok=True)
         melted.to_csv(output_dir / f"temp{dimension_name}{yr1}.csv")
 
@@ -126,6 +145,7 @@ def main():
     args = parse_arguments()
     paths = build_path_config(args)
     output_dir = args.output_dir or args.results_dir
+    boot_range = range(args.boots)
 
     lexicon = pd.read_csv(paths.lexicon_path)
     lexicon = lexicon[lexicon["Removed"] != "remove"]
@@ -142,10 +162,26 @@ def main():
     purewords = lexicon.loc[(lexicon["WhichPole"] == "pure")]["Term"].str.lower().tolist()
     impurewords = lexicon.loc[(lexicon["WhichPole"] == "impure")]["Term"].str.lower().tolist()
 
-    compute_dimension_scores(paths, YEARS, "danger", dangerouswords, safewords, args.model_prefix, output_dir, args.lexicon_min_count)
-    compute_dimension_scores(paths, YEARS, "disgust", disgustingwords, enticingwords, args.model_prefix, output_dir, args.lexicon_min_count)
-    compute_dimension_scores(paths, YEARS, "immorality", immoralwords, moralwords, args.model_prefix, output_dir, args.lexicon_min_count)
-    compute_dimension_scores(paths, YEARS, "impurity", impurewords, purewords, args.model_prefix, output_dir, args.lexicon_min_count)
+    compute_dimension_scores(
+        paths, YEARS, "danger", dangerouswords, safewords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
+    )
+    compute_dimension_scores(
+        paths,
+        YEARS,
+        "disgust",
+        disgustingwords,
+        enticingwords,
+        args.model_prefix,
+        output_dir,
+        args.lexicon_min_count,
+        boot_range,
+    )
+    compute_dimension_scores(
+        paths, YEARS, "immorality", immoralwords, moralwords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
+    )
+    compute_dimension_scores(
+        paths, YEARS, "impurity", impurewords, purewords, args.model_prefix, output_dir, args.lexicon_min_count, boot_range
+    )
 
 
 if __name__ == "__main__":
